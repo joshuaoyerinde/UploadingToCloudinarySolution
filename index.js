@@ -6,16 +6,24 @@ const BLOG_ROUTING = require('./controller/uploadimage');
 const  API_ROUTER = require('./router/index')
 const cors = require('cors');
 const port = process.env.PORT | 300;
+const bodyParser = require('body-parser')
 
 // app.use('./uploads/',express.static('uploads'))
-app.use(express.urlencoded({extended:true}))
+app.use(express.urlencoded({extended:false}))
 app.use(express.json());
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }))
+
+
+// parse application/json
+app.use(bodyParser.json())
 app.use(cors({origin:'*'}))
 //general router were import inside app
 
 app.use('/api',API_ROUTER)
 app.use('/api',BLOG_ROUTING)
-//(component) QuillEditorComponent.....
+
+
 
 
 

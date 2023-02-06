@@ -1,11 +1,11 @@
-
 const express = require('express')
 const router = express.Router();
 const multer = require('multer')
 const Cloudinary =  require ('../db/cloudinary')
+const connect = require('../db/db')
 
 const storage =multer.diskStorage({
-    // inserting  uploading files into the destination ......
+    // inseting out uploading files into the destination ......
     // destination: function (req, file, cb){
     //     cb(null, './uploads/');
     // },
@@ -13,9 +13,10 @@ const storage =multer.diskStorage({
         cb(null, new Date().toISOString() + file.originalname)
     }   
 })
+
 //specifying the file type...
 const filterType = (req, file, cb)=>{
-    if(file.mimetype == "image/png" || file.mimetype == "image/jpg"){
+    if(file.mimetype == "image/jpeg" || file.mimetype=="image/png"){
         cb(null, true);
     }else{
         cb(null, false);
@@ -24,41 +25,42 @@ const filterType = (req, file, cb)=>{
 
 const upload = multer({
     storage:storage,
-    fileFilter:filterType
-})
+    fileFilter:filterType 
+});
 
-
-router.post('/upload', upload.single('uploadImage'), async (req,res)=>{
+router.post('/uploadfile', upload.single('myfile'), async (req,res)=>{
+    let {title, blog_body, link} = req.body
     try{
-        console.log(req.body.email)
-        let {name, email, password} = req.body
+        console.log(req.file.path);
         const uplaodToCLoud = await Cloudinary.uploader.upload(req.file.path);
         if(uplaodToCLoud){
             console.log(req.file);
-            res.send(uplaodToCLoud);
-            let sql = `INSERT INTO registration_tb(name,email,password) VALUES (?,?,?)`;
-            connect.query(sql,[name, email, password], (err, result)=>{
+           // console.log(uplaodToCLoud)
+            let imglink = uplaodToCLoud. url
+            let sql = `INSERT INTO blog_tb(title, blog_body, link, imageLink) VALUES (?,?,?,?)`;
+           await connect.query(sql,[title, blog_body, link, imglink], (err, result)=>{
                 if (err){
-                    res.status(500).send(
-                        err
-                     );
+                    throw err
                 }else{
                     if(result){
                         res.status(200).json({
-                            message:"registered successful",
+                            message:"Created successfully",
                             data:result
                         })
-         
+
                     }else{
                         res.status(500).send(
                             err
-                         );
+                        );
                     }
                 }
             })
         }
+
     }catch(err){
-        console.log(err)
+        res.status(500).send(
+            err
+        );
     }
 })
 
