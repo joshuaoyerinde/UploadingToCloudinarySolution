@@ -5,7 +5,7 @@ const multer = require('multer')
 const Cloudinary =  require ('../db/cloudinary')
 
 const storage =multer.diskStorage({
-    // inseting out uploading files into the destination ......
+    // inserting  uploading files into the destination ......
     // destination: function (req, file, cb){
     //     cb(null, './uploads/');
     // },
@@ -28,14 +28,35 @@ const upload = multer({
 })
 
 
-router.post('/register', upload.single('uploadImage'), async (req,res)=>{
+router.post('/upload', upload.single('uploadImage'), async (req,res)=>{
     try{
+        console.log(req.body.email)
+        let {name, email, password} = req.body
         const uplaodToCLoud = await Cloudinary.uploader.upload(req.file.path);
         if(uplaodToCLoud){
             console.log(req.file);
             res.send(uplaodToCLoud);
+            let sql = `INSERT INTO registration_tb(name,email,password) VALUES (?,?,?)`;
+            connect.query(sql,[name, email, password], (err, result)=>{
+                if (err){
+                    res.status(500).send(
+                        err
+                     );
+                }else{
+                    if(result){
+                        res.status(200).json({
+                            message:"registered successful",
+                            data:result
+                        })
+         
+                    }else{
+                        res.status(500).send(
+                            err
+                         );
+                    }
+                }
+            })
         }
-
     }catch(err){
         console.log(err)
     }
